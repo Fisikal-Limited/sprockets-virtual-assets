@@ -14,7 +14,10 @@ module Sprockets::Rails::Helper
       path = "#{path}#{extname}"
     end
     
-    env.find_asset(path, :env => request.env)  
+    opts = {}
+    opts[:env] = request.env if respond_to?(:request)
+    
+    env.find_asset(path, opts)  
   end
   
   # Expand asset path to digested form.
@@ -31,7 +34,10 @@ module Sprockets::Rails::Helper
     end
 
     if environment = assets_environment
-      if asset = environment.find_asset(path, :env => request.env)
+      opts = {}
+      opts[:env] = request.env if respond_to?(:request)
+      
+      if asset = environment.find_asset(path, opts)
         return asset.digest_path
       end
     end
