@@ -1,0 +1,14 @@
+= sprockets-virtual-assets
+
+This gem hooks into sprockets classes (namely Sprockets::Environment and Sprockets::Index) to intercept
+queries for assets and enables the end user to provide the system with virtual assets – the assets which
+only refer to other files, but do not have a representation on the file system.
+
+The user is also responsible for providing a callback which prepares virtual asset content when invoked
+from Rack middleware – this is needed to make assets function in production environment.
+
+== Copyright
+
+Copyright (c) 2013 Anton Zhuravsky. See LICENSE.txt for
+further details.
+
