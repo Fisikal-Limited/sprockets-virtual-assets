@@ -8,18 +8,18 @@ module Sprockets::Rails::Helper
   #
   def lookup_asset_for_path(path, options = {})
     return unless env = assets_environment
-    
+
     path = path.to_s
     if extname = compute_asset_extname(path, options)
       path = "#{path}#{extname}"
     end
-    
+
     opts = {}
-    opts[:env] = request.env if respond_to?(:request)
-    
-    env.find_asset(path, opts)  
+    opts[:env] = request.env if respond_to?(:request) && !request.nil?
+
+    env.find_asset(path, opts)
   end
-  
+
   # Expand asset path to digested form.
   #
   # path    - String path
@@ -35,8 +35,8 @@ module Sprockets::Rails::Helper
 
     if environment = assets_environment
       opts = {}
-      opts[:env] = request.env if respond_to?(:request)
-      
+      opts[:env] = request.env if respond_to?(:request) && !request.nil?
+
       if asset = environment.find_asset(path, opts)
         return asset.digest_path
       end
