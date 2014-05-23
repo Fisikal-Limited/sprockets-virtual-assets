@@ -8,7 +8,7 @@ module Sprockets
       proc = SprocketsVirtualAssets.virtuals[path]
       return proc.call(path, self, options) if proc
       
-      find_asset_without_virtuals(path)
+      find_asset_without_virtuals(path, options)
     end
   
     alias_method_chain :find_asset, :virtuals
