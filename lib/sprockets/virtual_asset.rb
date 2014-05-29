@@ -3,6 +3,18 @@ module SprocketsVirtualAssets
   #  This class represents an sprocket-compatible asset to be passed down to sprockets.
   #
   class VirtualAsset < Sprockets::BundledAsset
+
+    class << self
+
+      #  Loads the asset from +Hash+ using the environment provided.
+      #
+      def load(data, environment)
+        self.allocate.tap do |asset|
+          asset.load environment, data
+        end
+      end
+
+    end
     
     #  Initializes the virtual asset with logical path and source.
     #
@@ -11,20 +23,60 @@ module SprocketsVirtualAssets
       @logical_path = path.to_s
       @pathname     = Pathname.new(virtual_path)
       @content_type = environment.content_type_of(pathname)      
-      @mtime        = Time.now
-
-      @source       = dependencies.map(&:to_s).join("\n") + "\n"
 
       context       = environment.context_class.new(environment, logical_path, pathname)
-      @source      += context.evaluate(path, options)
+      @source       = context.evaluate(path, options)
+
       build_required_assets(environment, context)
       build_dependency_paths(environment, context)
-
       
+      @source       = dependencies.map(&:to_s).join("\n") + "\n" + @source
+
       @length       = Rack::Utils.bytesize(source)
       @digest       = environment.digest.update(source).hexdigest
 
-      @mtime        = required_assets.map(&:mtime).max
+      @mtime        = (@required_assets + @dependency_paths).map(&:mtime).max
+    end
+
+    #  Returns a +Hash+ representing this asset.
+    #
+    def dump
+      {
+        root: @root,
+        logical_path: @logical_path,
+        pathname: relativize_root_path(@pathname.to_s),
+        content_type: @content_type,
+        source: @source,
+        length: @length,
+        digest: @digest,
+        mtime: @mtime.to_i,
+        required_assets:  @required_assets.map(&:logical_path),
+        dependency_paths: @dependency_paths.map { |dep| {path: relativize_root_path(dep.pathname), mtime: dep.mtime.to_i, digest: dep.digest} }
+      }
+    end
+
+    #  Loads the asset's fields with the data provided.
+    #
+    def load(environment, data)
+      data = data.with_indifferent_access
+
+      @root               = data[:root]
+      @logical_path       = data[:logical_path]
+      @content_type       = data[:content_type]
+      @source             = data[:source]
+      @length             = data[:length]
+      @digest             = data[:digest]
+      @mtime              = Time.at(data[:mtime])
+      
+      @required_assets    = data[:required_assets].map do |logical_path|
+        environment.find_asset(logical_path, bundle: false)
+      end
+
+      @dependency_paths   = data[:dependency_paths].map do |dep|
+        DependencyFile.new( expand_root_path(dep[:path]), Time.at( dep[:mtime] ), digest: dep[:digest] )
+      end
+
+      @pathname = Pathname.new( expand_root_path(data[:pathname]) )
     end
 
     #  Virtual asset's body is always empty.

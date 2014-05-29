@@ -34,7 +34,8 @@ module SprocketsVirtualAssets
       #  Mocks #stat'ting the virtual asset.
       #
       def stat
-        Stat.new( Time.now, false, true )
+        mtime = dependencies.map { |path| environment.find_asset(path, bundle: false).mtime }.max
+        Stat.new( mtime, false, true )
       end
 
       #  Returns digest of the asset.
@@ -76,7 +77,15 @@ module SprocketsVirtualAssets
       #  Creates an Asset object.
       #
       def asset
-        ::SprocketsVirtualAssets::VirtualAsset.new(virtual_source, environment, path, virtual_path, options)
+        key = "virtual-asset/#{ digest }-#{ stat.mtime.to_i }"
+        
+        if data = environment.cache_get(key)
+          ::SprocketsVirtualAssets::VirtualAsset.load(data, environment)
+        else
+          ::SprocketsVirtualAssets::VirtualAsset.new(virtual_source, environment, path, virtual_path, options).tap do |asset|
+            environment.cache_set key, asset.dump
+          end
+        end
       end
 
     end
