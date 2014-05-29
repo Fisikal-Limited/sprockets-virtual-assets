@@ -6,7 +6,7 @@ module Sprockets
     #
     def find_asset_with_virtuals(path, options = {})
       proc = SprocketsVirtualAssets.virtuals[path]
-      return proc.call(path, @environment, options) if proc
+      return proc.call(path, @environment, options).asset if proc
       
       find_asset_without_virtuals(path, options)
     end

@@ -2,9 +2,10 @@ require 'sprockets/hooks/environment'
 require 'sprockets/hooks/index'
 require 'sprockets/hooks/server'
 require 'sprockets/hooks/helper'
+require 'sprockets/hooks/context'
 
 require 'sprockets/virtual_asset'
-require 'sprockets/virtual_sass_asset'
+require 'sprockets/builder'
 
 module SprocketsVirtualAssets
 
