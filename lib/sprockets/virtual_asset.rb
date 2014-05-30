@@ -29,8 +29,8 @@ module SprocketsVirtualAssets
 
       build_required_assets(environment, context)
       build_dependency_paths(environment, context)
-      
-      @source       = dependencies.map(&:to_s).join("\n") + "\n" + @source
+
+      @source       = (dependencies.map(&:to_s) + [@source]).join("\n") if options[:bundle]
 
       @length       = Rack::Utils.bytesize(source)
       @digest       = environment.digest.update(source).hexdigest
@@ -79,10 +79,12 @@ module SprocketsVirtualAssets
       @pathname = Pathname.new( expand_root_path(data[:pathname]) )
     end
 
-    #  Virtual asset's body is always empty.
+    #  Virtual asset's body is the result of asset's compilation
+    #  sine dependencies (which are prepended or included as separate
+    #  files depending on the asset pipeline mode).
     #
     def body
-      ""
+      @source
     end
 
     #  Return an `Array` of `Asset` files that are declared dependencies.
@@ -94,7 +96,7 @@ module SprocketsVirtualAssets
     #  Expand asset into an `Array` of parts.
     #
     def to_a
-      required_assets
+      required_assets + [self]
     end
 
     #  Checks if Asset is stale by comparing the actual mtime and
