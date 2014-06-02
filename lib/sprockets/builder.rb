@@ -77,15 +77,20 @@ module SprocketsVirtualAssets
       #  Creates an Asset object.
       #
       def asset
-        key = "virtual-asset/#{ digest }-#{ stat.mtime.to_i }-#{ options[:bundle] }"
+        key = "virtual-asset/#{ digest }-#{ path }-#{ stat.mtime.to_i }-#{ options[:bundle] }"
 
-        if data = environment.cache_get(key)
+        asset = if data = environment.cache_get(key)
           ::SprocketsVirtualAssets::VirtualAsset.load(data, environment)
         else
-          ::SprocketsVirtualAssets::VirtualAsset.new(virtual_source, environment, path, virtual_path, options).tap do |asset|
-            environment.cache_set key, asset.dump
-          end
+          nil
         end
+
+        asset = nil unless asset.try(:fresh?, environment)
+        asset ||= ::SprocketsVirtualAssets::VirtualAsset.new(virtual_source, environment, path, virtual_path, options)
+
+        environment.cache_set key, asset.dump
+
+        asset
       end
 
     end
