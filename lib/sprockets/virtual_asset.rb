@@ -32,6 +32,11 @@ module SprocketsVirtualAssets
 
       @source       = (dependencies.map(&:to_s) + [@source]).join("\n") if options[:bundle]
 
+      @source       = environment.bundle_processors(content_type).inject(source) do |source, processor|
+        template = processor.new(pathname.to_s) { source }
+        template.render(self, {})
+      end if options[:bundle]
+
       @length       = Rack::Utils.bytesize(source)
       @digest       = environment.digest.update(source).hexdigest
 
