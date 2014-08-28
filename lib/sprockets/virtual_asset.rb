@@ -78,7 +78,7 @@ module SprocketsVirtualAssets
       end
 
       @dependency_paths   = data[:dependency_paths].map do |dep|
-        DependencyFile.new( expand_root_path(dep[:path]), Time.at( dep[:mtime] ), digest: dep[:digest] )
+        DependencyFile.new( expand_root_path(dep[:path]), Time.at( dep[:mtime] ), dep[:digest] )
       end
 
       @pathname = Pathname.new( expand_root_path(data[:pathname]) )
