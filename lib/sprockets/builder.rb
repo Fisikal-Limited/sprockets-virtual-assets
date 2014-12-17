@@ -77,7 +77,7 @@ module SprocketsVirtualAssets
       #  Creates an Asset object.
       #
       def asset
-        key = "virtual-asset/#{ digest }-#{ path }-#{ stat.mtime.to_i }-#{ options[:bundle] }"
+        key = "virtual-asset/#{ digest }-#{ path }-#{ stat.mtime.to_i }-#{ options[:bundle] }-v2"
 
         asset = if data = environment.cache_get(key)
           ::SprocketsVirtualAssets::VirtualAsset.load(data, environment)

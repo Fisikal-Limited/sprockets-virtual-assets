@@ -15,6 +15,8 @@ module SprocketsVirtualAssets
       end
 
     end
+
+    attr_accessor :virtual_source
     
     #  Initializes the virtual asset with logical path and source.
     #
@@ -23,6 +25,7 @@ module SprocketsVirtualAssets
       @logical_path = path.to_s
       @pathname     = Pathname.new(virtual_path)
       @content_type = environment.content_type_of(pathname)      
+      @virtual_source = virtual_source
 
       context       = environment.context_class.new(environment, logical_path, pathname)
       @source       = context.evaluate(path, options)
@@ -38,7 +41,7 @@ module SprocketsVirtualAssets
       end if options[:bundle]
 
       @length       = Rack::Utils.bytesize(source)
-      @digest       = environment.digest.update(source).hexdigest
+      @digest       = environment.digest.update(virtual_source).hexdigest
 
       @mtime        = (@required_assets + @dependency_paths).map(&:mtime).max
     end
@@ -55,6 +58,7 @@ module SprocketsVirtualAssets
         length: @length,
         digest: @digest,
         mtime: @mtime.to_i,
+        virtual_source: @virtual_source,
         required_assets:  @required_assets.map(&:logical_path),
         dependency_paths: @dependency_paths.map { |dep| {path: relativize_root_path(dep.pathname), mtime: dep.mtime.to_i, digest: dep.digest} }
       }
@@ -71,6 +75,7 @@ module SprocketsVirtualAssets
       @source             = data[:source]
       @length             = data[:length]
       @digest             = data[:digest]
+      @virtual_source     = data[:virtual_source]
       @mtime              = Time.at(data[:mtime])
       
       @required_assets    = data[:required_assets].map do |logical_path|
