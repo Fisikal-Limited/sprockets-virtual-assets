@@ -27,7 +27,7 @@ module SprocketsVirtualAssets
         @virtual_source ||= begin
           dependencies.inject("") do |source, dep|
             source + options[:require_term].gsub("__FILE__", dep) + "\n"
-          end + "\n\n/* #{path} */")
+          end + "\n\n/* #{path} */"
         end
       end
 
